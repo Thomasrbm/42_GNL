@@ -6,7 +6,7 @@
 /*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/16 17:08:05 by throbert          #+#    #+#             */
-/*   Updated: 2025/10/17 19:08:44 by marvin           ###   ########.fr       */
+/*   Updated: 2025/10/17 21:10:37 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -93,27 +93,32 @@ int	read_of_buffersize(int fd, char *buffer)
 	return (1);
 }
 
+// PK NEED char  *NEWLINE =>
+//
+// Iteration 1: line = "Hello" (malloc #1)
+// Iteration 2: line = ft_strjoin("Hello", " World")
+//              -> Nouveau malloc #2 contenant "Hello World"
+//              -> Mais malloc #1 ("Hello") n'est jamais free !
+//              -> LEAK de "Hello"
 char	*process_and_join(char *line, char *buf, int len)
 {
-	char	*temp;
+	char	*temp_if_line_empty;
 	char	*new_line;
 	int		i;
 
-	temp = malloc(len + 1);
-	if (!temp)
-		return (free(line), NULL);
+	temp_if_line_empty = malloc(len + 1);
 	i = -1;
 	while (++i < len)
-		temp[i] = buf[i];
-	temp[len] = '\0';
+		temp_if_line_empty[i] = buf[i];
+	temp_if_line_empty[len] = '\0';
 	if (!line)
-		new_line = ft_strdup(temp);
+		new_line = ft_strdup(temp_if_line_empty);
 	else
 	{
-		new_line = ft_strjoin(line, temp);
+		new_line = ft_strjoin(line, temp_if_line_empty);
 		free(line);
 	}
-	free(temp);
+	free(temp_if_line_empty);
 	return (new_line);
 }
 
@@ -126,7 +131,7 @@ char	*get_next_line(int fd)
 
 	if (!ft_checker_fd(fd))
 		return (NULL);
-	line = NULL;
+	line = NULL; // pck allou hors de gnl donc "used uninitialized dans ft(line, ...)" c est dans la parenthese que ca gene
 	while (1)
 	{
 		if (!read_of_buffersize(fd, buffer_read[fd]))
