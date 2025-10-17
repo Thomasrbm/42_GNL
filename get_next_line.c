@@ -6,11 +6,12 @@
 /*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/16 17:08:05 by throbert          #+#    #+#             */
-/*   Updated: 2025/10/17 14:27:37 by marvin           ###   ########.fr       */
+/*   Updated: 2025/10/17 18:52:59 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 // GNL V2, cleaner, shorter (handle bonuses)
+// Make re BUFFER_SIZE=1
 
 #include "get_next_line.h"
 
@@ -22,10 +23,7 @@ int	ft_strlen_till_backn(const char *s)
 	while (s[i])
 	{
 		if (s[i] == '\n')
-		{
-			i++;
-			break ;
-		}
+			return (i + 1);
 		i++;
 	}
 	return (i);
@@ -62,19 +60,6 @@ void	ft_str_shift_left(char *buffer_read, int len)
 // len = 1.
 // buffer[1] = \n  donc va mettre \n sur \n
 
-int	read_of_buffersize(int fd, char *buffer)
-{
-	int	bytes_read;
-
-	if (buffer[0] != '\0') // sinon vide car tab[] remplit de \0
-		return (1); // déjà rempli, pas besoin de lire
-	bytes_read = read(fd, buffer, BUFFER_SIZE);
-	if (bytes_read <= 0) // EOF / error
-		return (0);
-	buffer[bytes_read] = '\0';
-	return (1);
-}
-
 int	ft_checker_fd(int fd)
 {
 	if (fd < 0)
@@ -95,28 +80,68 @@ int	ft_checker_fd(int fd)
 	return (1);
 }
 
+char	*process_and_join(char *line, char *buf, int len)
+{
+	char	*temp;
+	char	*new_line;
+	int		i;
+
+	temp = malloc(len + 1);
+	if (!temp)
+		return (free(line), NULL);
+	i = -1;
+	while (++i < len)
+		temp[i] = buf[i];
+	temp[len] = '\0';
+	if (!line)
+		new_line = ft_strdup(temp);
+	else
+	{
+		new_line = ft_strjoin(line, temp);
+		free(line);
+	}
+	free(temp);
+	return (new_line);
+}
+
+int	read_of_buffersize(int fd, char *buffer)
+{
+	int	bytes_read;
+
+	if (buffer[0] != '\0') // sinon vide car tab[] remplit de \0
+		return (1); // déjà rempli, pas besoin de lire
+	bytes_read = read(fd, buffer, BUFFER_SIZE);
+	if (bytes_read <= 0) // EOF / error
+		return (0);
+	buffer[bytes_read] = '\0';
+	return (1);
+}
+
 char	*get_next_line(int fd)
 {
 	static char	buffer_read[OPEN_MAX_FOR_MULTIPLE_FD][BUFFER_SIZE + 1];
 	char		*line;
-	int			len;
-	int			i;
+	int			len_till_backn;
+	int			has_newline;
 
 	if (!ft_checker_fd(fd))
 		return (NULL);
-	if (!read_of_buffersize(fd, buffer_read[fd]))
-		return (NULL);
-	len = ft_strlen_till_backn(buffer_read[fd]);
-	line = malloc(len + 1);
-	i = 0;
-	while (i < len)
+	line = NULL;
+	while (1)
 	{
-		line[i] = buffer_read[fd][i];
-		i++;
+		if (!read_and_fill_buffer(fd, buffer_read[fd]))
+			return (line);
+		len_till_backn = ft_strlen_till_backn(buffer_read[fd]);
+		if (len_till_backn == 0)
+			return (line);
+		has_newline = (buffer_read[fd][len_till_backn - 1] == '\n');
+		line = process_and_join(line, buffer_read[fd], len_till_backn);
+		if (!line)
+			return (NULL);
+		ft_str_shift_left(buffer_read[fd], len_till_backn);
+		if (has_newline)
+			return (line);
 	}
-	line[len] = '\0';
-	ft_str_shift_left(buffer_read[fd], len);
-	return (line);
 }
 
 // int	main(void)
@@ -138,41 +163,42 @@ char	*get_next_line(int fd)
 // 	return (0);
 // }
 
-int main(void)
+int	main(void)
 {
-    int fd1, fd2;
-    char *line1;
-    char *line2;
+	char	*line1;
+	char	*line2;
+	int		fd1;
+	int		fd2;
 
-    fd1 = open("file1", O_RDONLY);
-    fd2 = open("file2", O_RDONLY);
-    if (fd1 < 0 || fd2 < 0)
-    {
-        perror("open");
-        return (1);
-    }
-
-    while (1)
-    {
-        line1 = get_next_line(fd1);
-        line2 = get_next_line(fd2);
-
-        if (!line1 && !line2) // plus rien dans aucun fichier
-            break;
-
-        if (line1)
-        {
-            printf("fd1: %s", line1);
-            free(line1);
-        }
-        if (line2)
-        {
-            printf("fd2: %s", line2);
-            free(line2);
-        }
-    }
-
-    close(fd1);
-    close(fd2);
-    return (0);
+	fd1 = open("file1", O_RDONLY);
+	fd2 = open("file2", O_RDONLY);
+	if (fd1 < 0 || fd2 < 0)
+	{
+		perror("open");
+		return (1);
+	}
+	while (1)
+	{
+		line1 = get_next_line(fd1);
+		line2 = get_next_line(fd2);
+		if (!line1 && !line2)
+			break ;
+		if (line1)
+		{
+			printf("fd1: %s", line1);
+			if (line1[strlen(line1) - 1] != '\n')
+				printf("\n");
+			free(line1);
+		}
+		if (line2)
+		{
+			printf("fd2: %s", line2);
+			if (line2[strlen(line2) - 1] != '\n')
+				printf("\n");
+			free(line2);
+		}
+	}
+	close(fd1);
+	close(fd2);
+	return (0);
 }

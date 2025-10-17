@@ -2,6 +2,8 @@ NAME = gnl
 
 CC = cc
 CFLAGS = -Wall -Wextra -Werror -g3
+BUFFER_SIZE ?= 42
+CFLAGS += -D BUFFER_SIZE=$(BUFFER_SIZE)
 RM = rm -f
 
 OBJDIR = ./objects
