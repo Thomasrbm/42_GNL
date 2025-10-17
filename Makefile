@@ -42,7 +42,7 @@ show_msg:
 	echo "$$MID"; \
 	echo "$$BOT\033[0m"
 
-clean: cleanlib
+clean:
 	@if [ -d "$(OBJDIR)" ]; then \
 		echo "\033[33mCleaning object files...\033[0m"; \
 		$(RM) -r $(OBJDIR); \
