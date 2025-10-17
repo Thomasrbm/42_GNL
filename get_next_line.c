@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   get_next_line.c                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: throbert <throbert@student.42.fr>          +#+  +:+       +#+        */
+/*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/16 17:08:05 by throbert          #+#    #+#             */
-/*   Updated: 2025/10/17 04:20:27 by throbert         ###   ########.fr       */
+/*   Updated: 2025/10/17 14:23:47 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,7 @@
 
 #include "get_next_line.h"
 
-static int	ft_strlen_till_backn(const char *s)
+int	ft_strlen_till_backn(const char *s)
 {
 	int	i;
 
@@ -31,30 +31,47 @@ static int	ft_strlen_till_backn(const char *s)
 	return (i);
 }
 
-void	ft_str_shift_right(char *buffer_read, int len)
+// recrit depuis apres \n par dessus le debut.   puis ecrase le \n restant pour raccourcir la str. \0
+
+// buffersize = 2 et que la ligne fait 2 lettre + \n
+// le \n est pas read
+// mais strlen est quand meme a 2
+// donc buffer_read[len] = \0 car a ete terminated dans read_of_buffersize
+// donc va return un chaine vide ("" == str[0] = \0)
+void	ft_str_shift_left(char *buffer_read, int len)
 {
 	int	i;
 
 	i = 0;
-	while (buffer_read[len])
+	while (buffer_read[len]) // si que \n rentre pas dedans
 	{
 		buffer_read[i] = buffer_read[len];
 		i++;
 		len++;
 	}
-	buffer_read[i] = '\0';
+	buffer_read[i] = '\0'; // fini la string plus tot et osef de ce qui vient apres  ||  SI QUE \n l ecrase
 }
+// Hello\n123\0
+// 
+// 123\0lo\n\0  ===> la str buffer s arrete au premier \0 trouver. apres c est consider comme du garbage
+//
+// prochaine iteration la string sera 123 et le strjoin ecrira par dessus l ancien reste.
 
-int	read_buffersize(int fd, char *buffer)
+//  si deux \n se suivent
+//
+// len = 1.
+// buffer[1] = \n  donc va mettre \n sur \n
+
+int	read_of_buffersize(int fd, char *buffer)
 {
 	int	bytes_read;
 
-	if (buffer[0] != '\0')
+	if (buffer[0] != '\0') // sinon vide car tab[] remplit de \0
 		return (1); // déjà rempli, pas besoin de lire
 	bytes_read = read(fd, buffer, BUFFER_SIZE);
 	if (bytes_read <= 0) // EOF / error
 		return (0);
-	buffer[bytes_read] = '\0'; // sinon read a pu ecraser avec du vide une partie du calloc et ca va jumb des ligne pour r
+	buffer[bytes_read] = '\0';
 	return (1);
 }
 
@@ -80,14 +97,14 @@ int	ft_checker_fd(int fd)
 
 char	*get_next_line(int fd)
 {
-	static char	buffer_read[OPEN_MAX_FOR_MULTIPLE_FD][BUFFER_SIZE + 1]; // deja calloc
+	static char	buffer_read[OPEN_MAX_FOR_MULTIPLE_FD][BUFFER_SIZE + 1];
 	char		*line;
 	int			len;
 	int			i;
 
 	if (!ft_checker_fd(fd))
 		return (NULL);
-	if (!read_buffersize(fd, buffer_read[fd]))
+	if (!read_of_buffersize(fd, buffer_read[fd]))
 		return (NULL);
 	len = ft_strlen_till_backn(buffer_read[fd]);
 	line = malloc(len + 1);
@@ -98,25 +115,25 @@ char	*get_next_line(int fd)
 		i++;
 	}
 	line[len] = '\0';
-	ft_str_shift_right(buffer_read[fd], len);
+	ft_str_shift_left(buffer_read[fd], len);
 	return (line);
 }
 
-// int	main(void)
-// {
-// 	int		infile;
-// 	char	*line;
+int	main(void)
+{
+	int		infile;
+	char	*line;
 
-// 	infile = open("infile", O_RDONLY);
-// 	while (1)
-// 	{
-// 		line = get_next_line(infile);
-// 		if (line)
-// 			printf("%s", line);
-// 		if (!line)
-// 			break ;
-// 		free(line);
-// 	}
-// 	close(infile);
-// 	return (0);
-// }
+	infile = open("infile", O_RDONLY);
+	while (1)
+	{
+		line = get_next_line(infile);
+		if (line)
+			printf("%s", line);
+		if (!line)
+			break ;
+		free(line);
+	}
+	close(infile);
+	return (0);
+}
