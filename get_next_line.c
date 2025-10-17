@@ -6,7 +6,7 @@
 /*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/16 17:08:05 by throbert          #+#    #+#             */
-/*   Updated: 2025/10/17 14:23:47 by marvin           ###   ########.fr       */
+/*   Updated: 2025/10/17 14:27:37 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -119,21 +119,60 @@ char	*get_next_line(int fd)
 	return (line);
 }
 
-int	main(void)
-{
-	int		infile;
-	char	*line;
+// int	main(void)
+// {
+// 	int		infile;
+// 	char	*line;
 
-	infile = open("infile", O_RDONLY);
-	while (1)
-	{
-		line = get_next_line(infile);
-		if (line)
-			printf("%s", line);
-		if (!line)
-			break ;
-		free(line);
-	}
-	close(infile);
-	return (0);
+// 	infile = open("infile", O_RDONLY);
+// 	while (1)
+// 	{
+// 		line = get_next_line(infile);
+// 		if (line)
+// 			printf("%s", line);
+// 		if (!line)
+// 			break ;
+// 		free(line);
+// 	}
+// 	close(infile);
+// 	return (0);
+// }
+
+int main(void)
+{
+    int fd1, fd2;
+    char *line1;
+    char *line2;
+
+    fd1 = open("file1", O_RDONLY);
+    fd2 = open("file2", O_RDONLY);
+    if (fd1 < 0 || fd2 < 0)
+    {
+        perror("open");
+        return (1);
+    }
+
+    while (1)
+    {
+        line1 = get_next_line(fd1);
+        line2 = get_next_line(fd2);
+
+        if (!line1 && !line2) // plus rien dans aucun fichier
+            break;
+
+        if (line1)
+        {
+            printf("fd1: %s", line1);
+            free(line1);
+        }
+        if (line2)
+        {
+            printf("fd2: %s", line2);
+            free(line2);
+        }
+    }
+
+    close(fd1);
+    close(fd2);
+    return (0);
 }
