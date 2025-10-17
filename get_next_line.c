@@ -3,12 +3,14 @@
 /*                                                        :::      ::::::::   */
 /*   get_next_line.c                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
+/*   By: throbert <throbert@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/10/16 17:08:05 by marvin            #+#    #+#             */
-/*   Updated: 2025/10/16 19:41:35 by marvin           ###   ########.fr       */
+/*   Created: 2025/10/16 17:08:05 by throbert          #+#    #+#             */
+/*   Updated: 2025/10/17 04:20:27 by throbert         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
+
+// GNL V2, cleaner, shorter (handle bonuses)
 
 #include "get_next_line.h"
 

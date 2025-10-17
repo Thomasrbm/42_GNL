@@ -1,7 +1,10 @@
 
 #pragma once
 
-#define BUFFER_SIZE 42
+#ifndef BUFFER_SIZE
+ #define BUFFER_SIZE 42
+#endif
+
 #define BACKSLAH_0 1
 #define OPEN_MAX_FOR_MULTIPLE_FD 1024
 

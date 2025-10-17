@@ -18,7 +18,7 @@ SRCS = get_next_line.c \
 	libft/sizers/ft_strlen.c \
 	libft/printers/ft_putstr_fd.c \
 
-all: $(NAME)
+all: libft $(NAME)
 
 $(NAME): $(OBJS)
 	@$(CC) $(CFLAGS) -o $(NAME) $(OBJS)
@@ -42,7 +42,7 @@ show_msg:
 	echo "$$MID"; \
 	echo "$$BOT\033[0m"
 
-clean:
+clean: cleanlib
 	@if [ -d "$(OBJDIR)" ]; then \
 		echo "\033[33mCleaning object files...\033[0m"; \
 		$(RM) -r $(OBJDIR); \
@@ -62,5 +62,22 @@ fclean: clean
 
 re: fclean all
 
+libft: 
+	@if [ ! -d "libft" ]; then \
+		echo "\033[33mCloning libft repository...\033[0m"; \
+		git clone git@github.com:Thomasrbm/42_Turbo-Libft.git libft; \
+		echo "\033[32mLibft cloned successfully!\033[0m"; \
+	else \
+		echo "\033[33mLibft directory already exists.\033[0m"; \
+	fi
 
-.PHONY: all show_msg libft clean fclean cleanlib re bonus fclean_bonus
+cleanlib:
+	@if [ -d "libft" ]; then \
+		echo "\033[33mRemoving libft directory...\033[0m"; \
+		$(RM) -r libft; \
+		echo "\033[32mLibft directory removed successfully!\033[0m"; \
+	else \
+		echo "\033[33mNo libft directory to clean.\033[0m"; \
+	fi
+
+.PHONY: all show_msg libft clean fclean cleanlib re bonus
